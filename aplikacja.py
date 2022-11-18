@@ -31,9 +31,19 @@ class Aplikacja:
         )
 
     def sortuj(self):
-        self._wyswietl_wszystkie_ksiazki(2, True)
+        self.ksiazki = sorted(self.ksiazki, key=lambda ksiazka: ksiazka.Nazwa) 
+        self._wyswietl_wszystkie_ksiazki(None, 2)
+
     def filtruj(self):
-        pass
+        choice = get_input(
+            prompt=text_tab("Podaj tytuł tekst tytułu książki do wyświetlenia: ", 2)
+        )
+        book_list = []
+        for ksiazka in self.ksiazki:
+            if str(ksiazka) == choice:
+                book_list.append(ksiazka)
+        self._wyswietl_wszystkie_ksiazki(book_list, 2)
+
 
     def _dodaj_ksiazke(self, id: str, nazwa: str, rozszerzenie_pliku: str, data_modyfikacji: str, link: str):
         temp_ksiazka = Ksiazka()
@@ -56,17 +66,11 @@ class Aplikacja:
             nowe_dane_ksiazki[3],
         )
 
-    # def _sortuj(self):
-    #     pass
-
-    # def _filtruj(self, nazwa: str = None, rozszerzenie_pliku: str = None, data_modyfikacji: str = None, link: str = None):
-    #     pass
-
     def _wybierz_ksiazke(self, function_to_call, welcome_text: str, call_to_action: str, successful_prompt: str, tab_amount: int = 0):
         should_exit = False 
         while not should_exit:
             print_tab(welcome_text, tab_amount)
-            self._wyswietl_wszystkie_ksiazki(tab_amount, True)
+            self._wyswietl_wszystkie_ksiazki(None, tab_amount, True)
             choice = None
             while True:
                 choice = get_input(
@@ -129,20 +133,22 @@ class Aplikacja:
         print("\tJesteś w menu wyświetlania książek - oto możliwe opcje:")
         print("\t1. Posortuj książki i pokaż je.")
         print("\t2. Pokaż książki przefiltrowane po tytule.")
-        print("\t3. Zakończ wyświetlanie książek.")
+        print("\t3. Zakończ wyświetlanie książkami.")
         return get_input(
             "\tPodaj numer operacji do wykonania: ",
             int,
             errorMessage="\tProszę, podaj tą informację w formie numeru :)."
             )
 
-    def _wyswietl_wszystkie_ksiazki(self, tab_amount: int = 0, with_details: bool = False):
-        if len(self.ksiazki) == 0:
+    def _wyswietl_wszystkie_ksiazki(self, book_list = None, tab_amount: int = 0, with_details: bool = False):
+        if not book_list:
+            book_list = self.ksiazki
+        if len(book_list) == 0:
             print_tab("Album nie posiada żadnych książek.", tab_amount)
         else:
             print_tab("Oto książki z twojego albumu:", tab_amount)
-            for index in range(len(self.ksiazki)):
-                temp_ksiazka = self.ksiazki[index]
+            for index in range(len(book_list)):
+                temp_ksiazka = book_list[index]
                 text_to_print = '#' + str(index+1) + '. Nazwa: ' + str(temp_ksiazka)
                 if with_details:
                     print_tab(

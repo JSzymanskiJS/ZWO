@@ -58,5 +58,8 @@ class Ksiazka:
     def __str__(self) -> str:
         return (self.Nazwa)
 
+    def __repr__(self):
+        return repr((self.ID, self.Name, self.Rozszerzenie_pliku, self.Data_Modyfikacji, self.link))
+
 if __name__ == "__main__":
     print("Wrong file. Try to run aplikacja.py instead of ksiazka.py")
