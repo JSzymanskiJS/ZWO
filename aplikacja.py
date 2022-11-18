@@ -1,5 +1,5 @@
 from ksiazka import Ksiazka
-from utils import getInput
+from utils import *
 import base64
 
 class Aplikacja:
@@ -9,40 +9,29 @@ class Aplikacja:
     def dodaj_ksiazke(self):
         base64_id = base64.b64encode(str(self._counter).encode('ascii')).decode('ascii')
         self._counter += 1
-        name = getInput("\t\tPodaj nazwę książki: ")
-        extension = getInput("\t\tPodaj rozszerzenie książki: ")
-        date = getInput("\t\tPodaj datę wydania książki: ")
-        link = getInput("\t\tPodaj link do książki: ")
-        self.ksiazki.append(Ksiazka(base64_id, name, extension, date, link))
-    def usun_ksiazke(self): #TODO
-        name = getInput("\t\tPodaj nazwę książki do usunięcia: ")
-        list_of_valid_books = []
-        counter = 0
-        for ksiazka_object in self.ksiazki:
-            if str(ksiazka_object) == name:
-                list_of_valid_books.append((counter, ksiazka_object))
-                counter += 1
-        if len(list_of_valid_books) == 0:
-            print("\t\tNie ma żadnych książek o podanym tytule.")
-        elif len(list_of_valid_books) == 1:
-            self._usun_ksiazke(list_of_valid_books[0][1].ID)
-            print("\t\tUsunięto jedyną książkę o podanym tytule.")
-        else:
-            print("\t\tWybierz książkę do usunięcia: ")
-            for data_tuple in list_of_valid_books:
-                print(
-                    '\t\t' + 
-                    str(data_tuple[0] + 1) + 
-                    ". Nazwa:" + data_tuple[1] + 
-                    " | Rozszerzenie: " + data_tuple[1].Rozszerzenie_pliku +
-                    " | Data Modyfikacji: " + data_tuple[1].Data_Modyfikacji +
-                    " | Link: " + data_tuple[1].link +
-                    )
+        dane_ksiazki = self._pobierz_dane_ksiazki(2)
+        self.ksiazki.append(Ksiazka(base64_id, dane_ksiazki[0], dane_ksiazki[1], dane_ksiazki[2], dane_ksiazki[3]))
+
+    def usun_ksiazke(self):
+        self._wybierz_ksiazke(
+            function_to_call=self._usun_ksiazke, 
+            welcome_text="Wyświetlam listę dostępnych książek do usunięcia: ",
+            call_to_action="Podaj numer książki do usunięcia (podanie numeru '0' spowoduje powrót do poprzedniego menu): ",
+            successful_prompt="Książka została usunięta pomyślnie.",
+            tab_amount=2
+        )
+
     def edytuj_ksiazke(self):
-        pass 
+        self._wybierz_ksiazke(
+        function_to_call=self._edytuj_ksiazke, 
+        welcome_text="Wyświetlam listę dostępnych książek do edycji: ",
+        call_to_action="Podaj numer książki do zedytowania (podanie numeru '0' spowoduje powrót do poprzedniego menu): ",
+        successful_prompt="Książka została zedytowana pomyślnie.", 
+        tab_amount=2
+        )
+
     def sortuj(self):
-        for ksiazka_object in self.ksiazki:
-            print(ksiazka_object)
+        self._wyswietl_wszystkie_ksiazki(2, True)
     def filtruj(self):
         pass
 
@@ -54,14 +43,18 @@ class Aplikacja:
         except Exception as e:
             print("Failed to add a book ;< .")
 
-    def _usun_ksiazke(self, id: str):
-        for index in range(len(self.ksiazki)):
-            if self.ksiazki[index].ID == id:
-                self.ksiazki.pop(index)
-                return
+    def _usun_ksiazke(self, index: int, tab_amount):
+        self.ksiazki.pop(index)
 
-    # def _edytuj_ksiazke(self, id: str, nazwa: str, rozszerzenie_pliku: str, data_modyfikacji: str, link: str):
-    #     pass 
+    def _edytuj_ksiazke(self, index: int, tab_amount: int = 2):
+        nowe_dane_ksiazki = self._pobierz_dane_ksiazki(tab_amount)
+        self.ksiazki[index].zapisz_dane(
+            self.ksiazki[index].ID,
+            nowe_dane_ksiazki[0],
+            nowe_dane_ksiazki[1],
+            nowe_dane_ksiazki[2],
+            nowe_dane_ksiazki[3],
+        )
 
     # def _sortuj(self):
     #     pass
@@ -69,6 +62,41 @@ class Aplikacja:
     # def _filtruj(self, nazwa: str = None, rozszerzenie_pliku: str = None, data_modyfikacji: str = None, link: str = None):
     #     pass
 
+    def _wybierz_ksiazke(self, function_to_call, welcome_text: str, call_to_action: str, successful_prompt: str, tab_amount: int = 0):
+        should_exit = False 
+        while not should_exit:
+            print_tab(welcome_text, tab_amount)
+            self._wyswietl_wszystkie_ksiazki(tab_amount, True)
+            choice = None
+            while True:
+                choice = get_input(
+                    text_tab(
+                        call_to_action,
+                        tab_amount
+                    )
+                )
+                try:
+                    choice = int(choice)
+                    break
+                except:
+                    print_tab("Proszę, podaj liczbę :).", tab_amount)
+                    continue
+
+            if choice >= 0 and choice <= len(self.ksiazki):
+                if choice == 0:
+                    should_exit = True
+                else:
+                    function_to_call(choice - 1)
+                    print_tab(successful_prompt, tab_amount)
+            else:
+                print_tab("Proszę, podaj poprawną liczbę :).", tab_amount)
+
+    def _pobierz_dane_ksiazki(self, tab_amount):
+        name = get_input(text_tab("Podaj nazwę książki: ", tab_amount))
+        extension = get_input(text_tab("Podaj rozszerzenie książki: ", tab_amount))
+        date = get_input(text_tab("Podaj datę wydania książki: ", tab_amount))
+        link = get_input(text_tab("Podaj link do książki: ", tab_amount))
+        return (name, extension, date, link)
 
     def _wyswietl_menu_aplikacji(self):
         print("============================================================================")
@@ -76,7 +104,7 @@ class Aplikacja:
         print("1. Zarządanie albumem książek.")
         print("2. Zarządanie wyświetlaniem albumu.")
         print("3. Zakończ program.")
-        return getInput(
+        return get_input(
             "Podaj numer operacji do wykonania: ",
             int,
             errorMessage="Proszę, podaj tą informację w formie numeru :)."
@@ -88,7 +116,7 @@ class Aplikacja:
         print("\t2. Edytuj książkę.")
         print("\t3. Usuń książkę.")
         print("\t4. Zakończ zarządzanie książkami.")
-        return getInput(
+        return get_input(
             "\tPodaj numer operacji do wykonania: ",
             int,
             errorMessage="\tProszę, podaj tą informację w formie numeru :)."
@@ -99,14 +127,35 @@ class Aplikacja:
 
     def _wyswietl_menu_wyswietlania_ksiazek(self):
         print("\tJesteś w menu wyświetlania książek - oto możliwe opcje:")
-        print("\t1. Pokaż posortowane książki.")
+        print("\t1. Posortuj książki i pokaż je.")
         print("\t2. Pokaż książki przefiltrowane po tytule.")
-        print("\t3. Zakończ zarządzanie książkami.")
-        return getInput(
+        print("\t3. Zakończ wyświetlanie książek.")
+        return get_input(
             "\tPodaj numer operacji do wykonania: ",
             int,
             errorMessage="\tProszę, podaj tą informację w formie numeru :)."
             )
+
+    def _wyswietl_wszystkie_ksiazki(self, tab_amount: int = 0, with_details: bool = False):
+        if len(self.ksiazki) == 0:
+            print_tab("Album nie posiada żadnych książek.", tab_amount)
+        else:
+            print_tab("Oto książki z twojego albumu:", tab_amount)
+            for index in range(len(self.ksiazki)):
+                temp_ksiazka = self.ksiazki[index]
+                text_to_print = '#' + str(index+1) + '. Nazwa: ' + str(temp_ksiazka)
+                if with_details:
+                    print_tab(
+                        (
+                            text_to_print +
+                            " | Rozszerzenie: " + temp_ksiazka.Rozszerzenie_pliku +
+                            " | Data Modyfikacji: " + temp_ksiazka.Data_Modyfikacji +
+                            " | Link: " + temp_ksiazka.link
+                        ),
+                        tab_amount
+                    )
+                else:
+                    print_tab(text_to_print, tab_amount)
 
     def _wyswietl_porzegnanie_wyswietlania_ksiazek(self):
         print("\tKończysz pracę z menu wyświetlania książek.")
@@ -141,8 +190,8 @@ if __name__ == "__main__":
                     is_exit_zarzadzaj = True
 
         elif choice == 2:
-            is_exit_zarzadzaj = False
-            while not is_exit_zarzadzaj:
+            is_exit_wyswietl = False
+            while not is_exit_wyswietl:
                 choice_wyswietl = int(aplikacja._wyswietl_menu_wyswietlania_ksiazek())            
                 if choice_wyswietl == 1:
                     aplikacja.sortuj()
@@ -152,7 +201,7 @@ if __name__ == "__main__":
 
                 elif choice_wyswietl == 3:
                     aplikacja._wyswietl_porzegnanie_wyswietlania_ksiazek()
-                    is_exit_zarzadzaj = True
+                    is_exit_wyswietl = True
 
         elif choice == 3:
             aplikacja.wyswietl_porzegnanie_aplikacji()
