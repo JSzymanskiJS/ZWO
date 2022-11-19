@@ -56,6 +56,7 @@ class Aplikacja:
     def _usun_ksiazke(self, index: int, tab_amount):
         self.ksiazki.pop(index)
 
+
     def _edytuj_ksiazke(self, index: int, tab_amount: int = 2):
         nowe_dane_ksiazki = self._pobierz_dane_ksiazki(tab_amount)
         self.ksiazki[index].zapisz_dane(

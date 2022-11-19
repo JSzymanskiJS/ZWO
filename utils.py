@@ -7,6 +7,7 @@ def get_input(prompt="", cast=None, condition=None, errorMessage=None) -> None:
         except:
             print(errorMessage or "Niepoprawna dana wejściowa. Spróbuj ponownie.")
 
+
 def text_tab(text: str, tab_amount: int) -> str:
     tabs = ""
     if tab_amount > 0:

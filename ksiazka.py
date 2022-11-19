@@ -49,6 +49,7 @@ class Ksiazka:
             raise Exception(f"Input parameter {data_type} is invalid.")
         raise Exception(f"Input parameter {data_type} does not exist.")
 
+
     def sortuj(self):
         pass
 
